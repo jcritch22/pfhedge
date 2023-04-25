@@ -16,6 +16,32 @@ from pfhedge import autogreek
 from pfhedge._utils.bisect import bisect
 from pfhedge._utils.typing import TensorOrScalar
 
+def perp_payoff(
+    input: Tensor, call: bool = True, strike: float = 1.0) -> Tensor:
+    """Returns the payoff of an American binary option.
+
+    .. seealso::
+        - :class:`pfhedge.instruments.AmericanBinaryOption`
+
+    Args:
+        input (torch.Tensor): The input tensor representing the price trajectory.
+        call (bool, default=True): Specifies whether the option is call or put.
+        strike (float, default=1.0): The strike price of the option.
+
+    Shape:
+        - input: :math:`(*, T)` where
+          :math:`T` is the number of time steps and
+          :math:`*` means any number of additional dimensions.
+        - output: :math:`(*)`
+
+    Returns:
+        torch.Tensor
+    """
+    if call:
+        return (input.max(dim=-1).values >= strike).to(input)
+    else:
+        return (input.min(dim=-1).values <= strike).to(input)
+
 
 def european_payoff(input: Tensor, call: bool = True, strike: float = 1.0) -> Tensor:
     """Returns the payoff of a European option.
