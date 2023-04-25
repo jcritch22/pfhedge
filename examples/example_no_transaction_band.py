@@ -11,7 +11,7 @@ from torch.nn import Module
 
 sys.path.append("..")
 from pfhedge.instruments import BrownianStock
-from pfhedge.instruments import EuropeanOption
+from pfhedge.instruments import PerpetualSwap
 from pfhedge.nn import BlackScholes
 from pfhedge.nn import Clamp
 from pfhedge.nn import Hedger
@@ -80,7 +80,7 @@ if __name__ == "__main__":
     torch.manual_seed(42)
 
     # Prepare a derivative to hedge
-    derivative = EuropeanOption(BrownianStock(cost=1e-4))
+    derivative = PerpetualSwap(BrownianStock(cost=1e-4))
 
     # Create your hedger
     model = NoTransactionBandNet(derivative)
