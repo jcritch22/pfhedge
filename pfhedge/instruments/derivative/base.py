@@ -394,6 +394,100 @@ class BaseOption(BaseDerivative, OptionMixin):
         raise DeprecationWarning(
             "BaseOption is deprecated. Inherit `BaseDerivative` and `OptionMixin` instead."
         )
+    
+class PerpMixin:
+    """Mixin class for perps."""
+
+    underlier: BasePrimary
+    strike: float
+    funding_rate: float
+    premium_index: float
+
+    def moneyness(self, time_step: Optional[int] = None, log: bool = False) -> Tensor:
+        """Returns the moneyness of self.
+
+        Moneyness reads :math:`S / K` where
+        :math:`S` is the spot price of the underlying instrument and
+        :math:`K` is the strike of the derivative.
+
+        Args:
+            time_step (int, optional): The time step to calculate
+                the moneyness. If ``None`` (default), the moneyness is calculated
+                at all time steps.
+            log (bool, default=False): If ``True``, returns log moneyness.
+
+        Shape:
+            - Output: :math:`(N, T)` where
+              :math:`N` is the number of paths and
+              :math:`T` is the number of time steps.
+              If ``time_step`` is given, the shape is :math:`(N, 1)`.
+
+        Returns:
+            torch.Tensor
+        """
+        index = ... if time_step is None else [time_step]
+        output = self.underlier.spot[..., index] / self.strike
+        if log:
+            output = output.log()
+        return output
+
+    def log_moneyness(self, time_step: Optional[int] = None) -> Tensor:
+        r"""Returns log-moneyness of self.
+
+        Log-moneyness reads :math:`\log(S / K)` where
+        :math:`S` is the spot price of the underlying instrument and
+        :math:`K` is the strike of the derivative.
+
+
+        Returns:
+            torch.Tensor
+        """
+        return self.moneyness(time_step=time_step, log=True)
+
+    def max_moneyness(
+        self, time_step: Optional[int] = None, log: bool = False
+    ) -> Tensor:
+        """Returns the cumulative maximum of the moneyness.
+
+        Args:
+            time_step (int, optional): The time step to calculate
+                the time to maturity. If ``None`` (default), the time to
+                maturity is calculated at all time steps.
+            log (bool, default=False): If ``True``, returns the cumulative
+                maximum of the log moneyness.
+
+        Shape:
+            - Output: :math:`(N, T)` where
+              :math:`N` is the number of paths and
+              :math:`T` is the number of time steps.
+              If ``time_step`` is given, the shape is :math:`(N, 1)`.
+
+        Returns:
+            torch.Tensor
+        """
+        moneyness = self.moneyness(None, log=log)
+        if time_step is None:
+            return moneyness.cummax(dim=-1).values
+        else:
+            return moneyness[..., : time_step + 1].max(dim=-1, keepdim=True).values
+
+    def max_log_moneyness(self, time_step: Optional[int] = None) -> Tensor:
+        """Returns ``self.max_moneyness(time_step).log()``.
+
+        Returns:
+            torch.Tensor
+        """
+        return self.max_moneyness(time_step, log=True)
+
+
+class BaseOption(BaseDerivative, PerpMixin):
+    """(deprecated) Base class for options."""
+
+    def __init__(self):
+        super().__init__()
+        raise DeprecationWarning(
+            "BaseOption is deprecated. Inherit `BaseDerivative` and `PerpMixin` instead."
+        )
 
 
 # Assign docstrings so they appear in Sphinx documentation

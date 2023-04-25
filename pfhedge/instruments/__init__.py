@@ -1,10 +1,12 @@
 from .base import BaseInstrument  # NOQA
 from .base import Instrument  # NOQA
+from .derivative.perpetual_swap import PerpetualSwap
 from .derivative.american_binary import AmericanBinaryOption  # NOQA
 from .derivative.base import BaseDerivative  # NOQA
 from .derivative.base import BaseOption  # NOQA
 from .derivative.base import Derivative  # NOQA
 from .derivative.base import OptionMixin  # NOQA
+from .derivative.base import PerpMixin  # NOQA
 from .derivative.cliquet import EuropeanForwardStartOption  # NOQA
 from .derivative.european import EuropeanOption  # NOQA
 from .derivative.european_binary import EuropeanBinaryOption  # NOQA
